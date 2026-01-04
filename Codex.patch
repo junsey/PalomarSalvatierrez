@@ -1,0 +1,1041 @@
+diff --git a/.env.example b/.env.example
+new file mode 100644
+index 0000000000000000000000000000000000000000..f75a5f14a1245b373e8f55a0435219998ff487ee
+--- /dev/null
++++ b/.env.example
+@@ -0,0 +1,2 @@
++VITE_SHEET_ID=1JZcjjdxGi-jUV_eedQebsRWsaVVwQMmyRUPesvIfQ0E
++VITE_SHEET_NAME=Hoja 1
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..e8cb7db8f4a60fd41a78e06212680215b18ab72b
+--- /dev/null
++++ b/.eslintrc.cjs
+@@ -0,0 +1,24 @@
++module.exports = {
++  root: true,
++  env: {
++    browser: true,
++    es2020: true,
++  },
++  parser: '@typescript-eslint/parser',
++  plugins: ['@typescript-eslint', 'react', 'react-hooks'],
++  extends: [
++    'eslint:recommended',
++    'plugin:react/recommended',
++    'plugin:react-hooks/recommended',
++    'plugin:@typescript-eslint/recommended',
++    'prettier',
++  ],
++  settings: {
++    react: {
++      version: 'detect',
++    },
++  },
++  rules: {
++    'react/react-in-jsx-scope': 'off'
++  }
++};
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000000000000000000000000000000000000..cf71613c7b9cd0028fb6d21a1f495abaa7a00a35
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,6 @@
++node_modules
++.DS_Store
++dist
++.env
++.env.local
++.env.*.local
+diff --git a/.prettierrc b/.prettierrc
+new file mode 100644
+index 0000000000000000000000000000000000000000..a20502b7f06d848452da0d93ce8830c1d86b05dd
+--- /dev/null
++++ b/.prettierrc
+@@ -0,0 +1,4 @@
++{
++  "singleQuote": true,
++  "trailingComma": "all"
++}
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..26c66e3b9154e11441b51ed8796f463b92e46b9e
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,12 @@
++<!doctype html>
++<html lang="es">
++  <head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <title>Palomar</title>
++  </head>
++  <body>
++    <div id="root"></div>
++    <script type="module" src="/src/main.tsx"></script>
++  </body>
++</html>
+diff --git a/package.json b/package.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..09064cf5a9f5650706303809c08e5b232ac4a557
+--- /dev/null
++++ b/package.json
+@@ -0,0 +1,42 @@
++{
++  "name": "palomar-salvatierrez",
++  "private": true,
++  "version": "0.0.0",
++  "type": "module",
++  "scripts": {
++    "dev": "vite",
++    "build": "tsc -b && vite build",
++    "preview": "vite preview",
++    "lint": "eslint .",
++    "format": "prettier --write ."
++  },
++  "dependencies": {
++    "@emotion/react": "^11.11.4",
++    "@emotion/styled": "^11.11.5",
++    "@mui/icons-material": "^5.15.20",
++    "@mui/material": "^5.15.20",
++    "@tanstack/react-query": "^5.51.1",
++    "papaparse": "^5.4.1",
++    "react": "^18.3.1",
++    "react-dom": "^18.3.1",
++    "react-hook-form": "^7.52.1",
++    "react-router-dom": "^6.25.1",
++    "zod": "^3.23.8",
++    "@hookform/resolvers": "^3.9.0"
++  },
++  "devDependencies": {
++    "@types/papaparse": "^5.3.14",
++    "@types/react": "^18.3.3",
++    "@types/react-dom": "^18.3.0",
++    "@typescript-eslint/eslint-plugin": "^7.16.0",
++    "@typescript-eslint/parser": "^7.16.0",
++    "@vitejs/plugin-react": "^4.3.1",
++    "eslint": "^8.57.0",
++    "eslint-config-prettier": "^9.1.0",
++    "eslint-plugin-react": "^7.35.0",
++    "eslint-plugin-react-hooks": "^4.6.2",
++    "prettier": "^3.3.3",
++    "typescript": "^5.5.3",
++    "vite": "^5.3.4"
++  }
++}
+diff --git a/src/app/pigeonsStore.tsx b/src/app/pigeonsStore.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..ced3d13def19ec886e5ad6429718a8d4615112ec
+--- /dev/null
++++ b/src/app/pigeonsStore.tsx
+@@ -0,0 +1,47 @@
++import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
++import { Pigeon } from '../types/pigeon';
++
++interface PigeonsContextValue {
++  localPigeons: Pigeon[];
++  addPigeon: (pigeon: Pigeon) => void;
++}
++
++const PigeonsContext = createContext<PigeonsContextValue | undefined>(undefined);
++
++interface PigeonsProviderProps {
++  children: ReactNode;
++}
++
++export function PigeonsProvider({ children }: PigeonsProviderProps) {
++  const [localPigeons, setLocalPigeons] = useState<Pigeon[]>([]);
++
++  const addPigeon = (pigeon: Pigeon) => {
++    setLocalPigeons((prev) => {
++      const existingIndex = prev.findIndex(
++        (item) => item.numero === pigeon.numero,
++      );
++      if (existingIndex >= 0) {
++        const next = [...prev];
++        next[existingIndex] = pigeon;
++        return next;
++      }
++      return [pigeon, ...prev];
++    });
++  };
++
++  const value = useMemo(() => ({ localPigeons, addPigeon }), [localPigeons]);
++
++  return (
++    <PigeonsContext.Provider value={value}>
++      {children}
++    </PigeonsContext.Provider>
++  );
++}
++
++export function usePigeonsStore() {
++  const context = useContext(PigeonsContext);
++  if (!context) {
++    throw new Error('usePigeonsStore must be used within PigeonsProvider');
++  }
++  return context;
++}
+diff --git a/src/app/providers.tsx b/src/app/providers.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..41beff10da400c311f255b777f15ef4a328b4d23
+--- /dev/null
++++ b/src/app/providers.tsx
+@@ -0,0 +1,21 @@
++import { CssBaseline, ThemeProvider } from '@mui/material';
++import { QueryClientProvider } from '@tanstack/react-query';
++import { ReactNode } from 'react';
++import { queryClient } from './queryClient';
++import { theme } from './theme';
++import { PigeonsProvider } from './pigeonsStore';
++
++interface AppProvidersProps {
++  children: ReactNode;
++}
++
++export function AppProviders({ children }: AppProvidersProps) {
++  return (
++    <QueryClientProvider client={queryClient}>
++      <ThemeProvider theme={theme}>
++        <CssBaseline />
++        <PigeonsProvider>{children}</PigeonsProvider>
++      </ThemeProvider>
++    </QueryClientProvider>
++  );
++}
+diff --git a/src/app/queryClient.ts b/src/app/queryClient.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..93b511336ece5e4b54b0ce85a4fa742b77f0a86b
+--- /dev/null
++++ b/src/app/queryClient.ts
+@@ -0,0 +1,10 @@
++import { QueryClient } from '@tanstack/react-query';
++
++export const queryClient = new QueryClient({
++  defaultOptions: {
++    queries: {
++      staleTime: 1000 * 60 * 5,
++      retry: 1,
++    },
++  },
++});
+diff --git a/src/app/router.tsx b/src/app/router.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..a3fd859425a93ec87824ef181fd8e68cdc49e65d
+--- /dev/null
++++ b/src/app/router.tsx
+@@ -0,0 +1,18 @@
++import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
++import { AppShell } from '../components/AppShell';
++import { PigeonDetailPage } from '../pages/PigeonDetailPage';
++import { PigeonsListPage } from '../pages/PigeonsListPage';
++
++export function AppRouter() {
++  return (
++    <BrowserRouter>
++      <AppShell>
++        <Routes>
++          <Route path="/" element={<Navigate to="/palomas" replace />} />
++          <Route path="/palomas" element={<PigeonsListPage />} />
++          <Route path="/palomas/:numero" element={<PigeonDetailPage />} />
++        </Routes>
++      </AppShell>
++    </BrowserRouter>
++  );
++}
+diff --git a/src/app/theme.ts b/src/app/theme.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..9c46cd94746599d1711ab28801aea2a0692ccd33
+--- /dev/null
++++ b/src/app/theme.ts
+@@ -0,0 +1,41 @@
++import { createTheme } from '@mui/material/styles';
++
++export const theme = createTheme({
++  palette: {
++    mode: 'light',
++    background: {
++      default: '#f7f7f7',
++      paper: '#fbfbfb',
++    },
++    primary: {
++      main: '#f2c94c',
++      dark: '#d4a700',
++      contrastText: '#2d2a26',
++    },
++    secondary: {
++      main: '#5f5f5f',
++    },
++  },
++  shape: {
++    borderRadius: 16,
++  },
++  typography: {
++    fontFamily: ['"Inter"', 'system-ui', 'sans-serif'].join(','),
++  },
++  components: {
++    MuiCard: {
++      styleOverrides: {
++        root: {
++          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
++        },
++      },
++    },
++    MuiPaper: {
++      styleOverrides: {
++        root: {
++          borderRadius: 16,
++        },
++      },
++    },
++  },
++});
+diff --git a/src/components/AppShell.tsx b/src/components/AppShell.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..7130e1984591e719bfdb905068453e5bba269701
+--- /dev/null
++++ b/src/components/AppShell.tsx
+@@ -0,0 +1,28 @@
++import { AppBar, Box, Container, Toolbar, Typography } from '@mui/material';
++import { ReactNode } from 'react';
++
++interface AppShellProps {
++  children: ReactNode;
++}
++
++export function AppShell({ children }: AppShellProps) {
++  return (
++    <Box minHeight="100vh" bgcolor="background.default">
++      <AppBar
++        position="sticky"
++        color="default"
++        elevation={0}
++        sx={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}
++      >
++        <Toolbar>
++          <Typography variant="h6" fontWeight={700} color="text.primary">
++            Palomar
++          </Typography>
++        </Toolbar>
++      </AppBar>
++      <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
++        {children}
++      </Container>
++    </Box>
++  );
++}
+diff --git a/src/components/FieldRow.tsx b/src/components/FieldRow.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..7be52b6baba54373f3c12045bc7ec5b225995d38
+--- /dev/null
++++ b/src/components/FieldRow.tsx
+@@ -0,0 +1,23 @@
++import { Box, Divider, Typography } from '@mui/material';
++import { ReactNode } from 'react';
++
++interface FieldRowProps {
++  label: string;
++  value?: ReactNode;
++}
++
++export function FieldRow({ label, value }: FieldRowProps) {
++  return (
++    <Box>
++      <Box display="flex" justifyContent="space-between" gap={2} py={1}>
++        <Typography variant="body2" color="text.secondary">
++          {label}
++        </Typography>
++        <Typography variant="body2" fontWeight={500} textAlign="right">
++          {value || '-'}
++        </Typography>
++      </Box>
++      <Divider />
++    </Box>
++  );
++}
+diff --git a/src/components/FiltersPanel.tsx b/src/components/FiltersPanel.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..887d87d2711d1786c93aed662eab447aac39baf5
+--- /dev/null
++++ b/src/components/FiltersPanel.tsx
+@@ -0,0 +1,82 @@
++import {
++  Box,
++  Button,
++  FormControl,
++  InputLabel,
++  MenuItem,
++  Select,
++  Stack,
++  Typography,
++} from '@mui/material';
++
++interface FiltersPanelProps {
++  estado: string;
++  tipo: string;
++  onEstadoChange: (value: string) => void;
++  onTipoChange: (value: string) => void;
++  onClear: () => void;
++  estados: string[];
++  tipos: string[];
++}
++
++export function FiltersPanel({
++  estado,
++  tipo,
++  onEstadoChange,
++  onTipoChange,
++  onClear,
++  estados,
++  tipos,
++}: FiltersPanelProps) {
++  return (
++    <Box
++      sx={{
++        borderRadius: 3,
++        border: '1px solid rgba(0,0,0,0.08)',
++        p: 2,
++        bgcolor: 'background.paper',
++      }}
++    >
++      <Stack spacing={2}>
++        <Typography variant="subtitle1" fontWeight={600}>
++          Filtros
++        </Typography>
++        <FormControl fullWidth size="small">
++          <InputLabel id="estado-label">Estado</InputLabel>
++          <Select
++            labelId="estado-label"
++            label="Estado"
++            value={estado}
++            onChange={(event) => onEstadoChange(event.target.value)}
++          >
++            <MenuItem value="">Todos</MenuItem>
++            {estados.map((option) => (
++              <MenuItem key={option} value={option}>
++                {option}
++              </MenuItem>
++            ))}
++          </Select>
++        </FormControl>
++        <FormControl fullWidth size="small">
++          <InputLabel id="tipo-label">Tipo</InputLabel>
++          <Select
++            labelId="tipo-label"
++            label="Tipo"
++            value={tipo}
++            onChange={(event) => onTipoChange(event.target.value)}
++          >
++            <MenuItem value="">Todos</MenuItem>
++            {tipos.map((option) => (
++              <MenuItem key={option} value={option}>
++                {option}
++              </MenuItem>
++            ))}
++          </Select>
++        </FormControl>
++        <Button variant="outlined" onClick={onClear}>
++          Limpiar
++        </Button>
++      </Stack>
++    </Box>
++  );
++}
+diff --git a/src/components/PigeonCard.tsx b/src/components/PigeonCard.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..ddae6e3a43bd9cb3c27434e0465473aea0ce8b82
+--- /dev/null
++++ b/src/components/PigeonCard.tsx
+@@ -0,0 +1,83 @@
++import {
++  Avatar,
++  Box,
++  Button,
++  Card,
++  CardActions,
++  CardContent,
++  CardMedia,
++  Chip,
++  Stack,
++  Typography,
++} from '@mui/material';
++import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
++import { Link as RouterLink } from 'react-router-dom';
++import { Pigeon } from '../types/pigeon';
++
++interface PigeonCardProps {
++  pigeon: Pigeon;
++}
++
++export function PigeonCard({ pigeon }: PigeonCardProps) {
++  const hasImage = Boolean(pigeon.foto);
++
++  return (
++    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
++      {hasImage ? (
++        <CardMedia
++          component="img"
++          height="180"
++          image={pigeon.foto}
++          alt={`Foto de ${pigeon.nombre}`}
++        />
++      ) : (
++        <Box
++          sx={{
++            height: 180,
++            display: 'flex',
++            alignItems: 'center',
++            justifyContent: 'center',
++            bgcolor: 'rgba(242, 201, 76, 0.1)',
++          }}
++        >
++          <Avatar
++            sx={{
++              bgcolor: 'primary.main',
++              color: 'text.primary',
++              width: 64,
++              height: 64,
++            }}
++          >
++            <ImageOutlinedIcon />
++          </Avatar>
++        </Box>
++      )}
++      <CardContent sx={{ flexGrow: 1 }}>
++        <Typography variant="h6" fontWeight={600} gutterBottom>
++          {pigeon.nombre}
++        </Typography>
++        <Typography variant="body2" color="text.secondary" gutterBottom>
++          N° {pigeon.numero}
++        </Typography>
++        <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1} mb={1}>
++          {pigeon.estado && <Chip label={pigeon.estado} size="small" />}
++          {pigeon.tipo && <Chip label={pigeon.tipo} size="small" />}
++        </Stack>
++        {pigeon.color && (
++          <Typography variant="caption" color="text.secondary">
++            Color: {pigeon.color}
++          </Typography>
++        )}
++      </CardContent>
++      <CardActions>
++        <Button
++          size="small"
++          component={RouterLink}
++          to={`/palomas/${pigeon.numero}`}
++        >
++          Ver detalle
++        </Button>
++      </CardActions>
++    </Card>
++  );
++}
+diff --git a/src/components/PigeonFormDialog.tsx b/src/components/PigeonFormDialog.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..78688969af390a35211c1b28fec6ec863c660152
+--- /dev/null
++++ b/src/components/PigeonFormDialog.tsx
+@@ -0,0 +1,172 @@
++import {
++  Button,
++  Dialog,
++  DialogActions,
++  DialogContent,
++  DialogTitle,
++  Grid,
++  MenuItem,
++  TextField,
++} from '@mui/material';
++import { zodResolver } from '@hookform/resolvers/zod';
++import { useForm } from 'react-hook-form';
++import { Pigeon } from '../types/pigeon';
++import { PIGEON_ESTADOS, PIGEON_TIPOS } from '../utils/constants';
++import { pigeonSchema, PigeonFormValues } from '../utils/pigeonSchema';
++
++interface PigeonFormDialogProps {
++  open: boolean;
++  onClose: () => void;
++  onSubmit: (pigeon: Pigeon) => void;
++}
++
++export function PigeonFormDialog({
++  open,
++  onClose,
++  onSubmit,
++}: PigeonFormDialogProps) {
++  const {
++    register,
++    handleSubmit,
++    formState: { errors },
++    reset,
++  } = useForm<PigeonFormValues>({
++    resolver: zodResolver(pigeonSchema),
++    defaultValues: {
++      nombre: '',
++      numero: '',
++      estado: '',
++      tipo: '',
++    },
++  });
++
++  const handleClose = () => {
++    reset();
++    onClose();
++  };
++
++  const submit = handleSubmit((values) => {
++    onSubmit({
++      nombre: values.nombre,
++      numero: values.numero,
++      color: values.color || undefined,
++      descripcion: values.descripcion || undefined,
++      padre: values.padre || undefined,
++      madre: values.madre || undefined,
++      fechaNacimiento: values.fechaNacimiento || undefined,
++      fechaLlegada: values.fechaLlegada || undefined,
++      tipo: values.tipo || undefined,
++      estado: values.estado || undefined,
++      foto: values.foto || undefined,
++    });
++    // TODO: Enviar cambios a Google Sheets cuando agreguemos escritura.
++    handleClose();
++  });
++
++  return (
++    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
++      <DialogTitle>Agregar/Editar paloma</DialogTitle>
++      <DialogContent sx={{ mt: 1 }}>
++        <Grid container spacing={2}>
++          <Grid item xs={12} sm={6}>
++            <TextField
++              label="Nombre"
++              fullWidth
++              required
++              {...register('nombre')}
++              error={Boolean(errors.nombre)}
++              helperText={errors.nombre?.message}
++            />
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField
++              label="Número"
++              fullWidth
++              required
++              {...register('numero')}
++              error={Boolean(errors.numero)}
++              helperText={errors.numero?.message}
++            />
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField label="Color" fullWidth {...register('color')} />
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField label="Descripción" fullWidth {...register('descripcion')} />
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField label="Padre" fullWidth {...register('padre')} />
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField label="Madre" fullWidth {...register('madre')} />
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField
++              label="Fecha de nacimiento"
++              fullWidth
++              {...register('fechaNacimiento')}
++              placeholder="AAAA-MM-DD"
++            />
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField
++              label="Fecha de llegada"
++              fullWidth
++              {...register('fechaLlegada')}
++              placeholder="AAAA-MM-DD"
++            />
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField
++              label="Tipo"
++              select
++              fullWidth
++              {...register('tipo')}
++              helperText={errors.tipo?.message || 'Selecciona el tipo de paloma'}
++              error={Boolean(errors.tipo)}
++            >
++              <MenuItem value="">Sin definir</MenuItem>
++              {PIGEON_TIPOS.map((option) => (
++                <MenuItem key={option} value={option}>
++                  {option}
++                </MenuItem>
++              ))}
++            </TextField>
++          </Grid>
++          <Grid item xs={12} sm={6}>
++            <TextField
++              label="Estado"
++              select
++              fullWidth
++              {...register('estado')}
++              helperText={errors.estado?.message || 'Selecciona el estado actual'}
++              error={Boolean(errors.estado)}
++            >
++              <MenuItem value="">Sin definir</MenuItem>
++              {PIGEON_ESTADOS.map((option) => (
++                <MenuItem key={option} value={option}>
++                  {option}
++                </MenuItem>
++              ))}
+            </TextField>
++          </Grid>
++          <Grid item xs={12}>
++            <TextField
++              label="Foto (URL)"
++              fullWidth
++              {...register('foto')}
++              error={Boolean(errors.foto)}
++              helperText={errors.foto?.message}
++            />
++          </Grid>
++        </Grid>
++      </DialogContent>
++      <DialogActions>
++        <Button onClick={handleClose}>Cancelar</Button>
++        <Button variant="contained" onClick={submit}>
++          Guardar
++        </Button>
++      </DialogActions>
++    </Dialog>
++  );
++}
+diff --git a/src/data/pigeonsProvider.ts b/src/data/pigeonsProvider.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..0a69b77bc5cfb1cae39ad9f53e5725b6da9f48f7
+--- /dev/null
++++ b/src/data/pigeonsProvider.ts
+@@ -0,0 +1,15 @@
++import { Pigeon } from '../types/pigeon';
++import { fetchPigeons } from './sheetClient';
++
++export interface PigeonsDataProvider {
++  list: () => Promise<Pigeon[]>;
++  create: (pigeon: Pigeon) => Promise<void>;
++}
++
++export const sheetReadOnlyProvider: PigeonsDataProvider = {
++  list: fetchPigeons,
++  create: async () => {
++    // TODO: implementar escritura a Google Sheets.
++    throw new Error('Proveedor en modo lectura.');
++  },
++};
+diff --git a/src/data/pigeonsQuery.ts b/src/data/pigeonsQuery.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..e2bfee735056b81d62abd9a8de36142a2c11b119
+--- /dev/null
++++ b/src/data/pigeonsQuery.ts
+@@ -0,0 +1,11 @@
++import { useQuery } from '@tanstack/react-query';
++import { sheetReadOnlyProvider } from './pigeonsProvider';
++
++export const pigeonsQueryKey = ['pigeons'] as const;
++
++export function usePigeonsQuery() {
++  return useQuery({
++    queryKey: pigeonsQueryKey,
++    queryFn: sheetReadOnlyProvider.list,
++  });
++}
+diff --git a/src/data/sheetClient.ts b/src/data/sheetClient.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..4124f54717e4a31e4fc745e631e9d7d70458d989
+--- /dev/null
++++ b/src/data/sheetClient.ts
+@@ -0,0 +1,76 @@
++import Papa from 'papaparse';
++import { Pigeon } from '../types/pigeon';
++import { createFallbackNumero, isValidUrl } from '../utils/validators';
++
++const DEFAULT_SHEET_ID = '1JZcjjdxGi-jUV_eedQebsRWsaVVwQMmyRUPesvIfQ0E';
++const DEFAULT_SHEET_NAME = 'Hoja 1';
++
++export const SHEET_HEADERS = {
++  nombre: 'Nombre',
++  numero: 'Numero',
++  color: 'Color',
++  descripcion: 'Descripcion',
++  padre: 'Padre',
++  madre: 'Madre',
++  fechaNacimiento: 'Fecha de nacimiento',
++  fechaLlegada: 'Fecha de llegada',
++  tipo: 'Tipo(Local o rescatada)',
++  estado: 'Estado(en palomar, desaparecida, fallecida)',
++  foto: 'Foto',
++} as const;
++
++export function buildSheetUrl(sheetId: string, sheetName: string) {
++  const encodedSheet = encodeURIComponent(sheetName);
++  return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodedSheet}`;
++}
++
++export function getSheetConfig() {
++  const sheetId = import.meta.env.VITE_SHEET_ID || DEFAULT_SHEET_ID;
++  const sheetName = import.meta.env.VITE_SHEET_NAME || DEFAULT_SHEET_NAME;
++  return { sheetId, sheetName };
++}
++
++export async function fetchCsv() {
++  const { sheetId, sheetName } = getSheetConfig();
++  const url = buildSheetUrl(sheetId, sheetName);
++  const response = await fetch(url);
++  if (!response.ok) {
++    throw new Error('No se pudo cargar la hoja de cálculo.');
++  }
++  return response.text();
++}
++
++export function parseCsv(text: string) {
++  return Papa.parse<Record<string, string>>(text, {
++    header: true,
++    skipEmptyLines: true,
++  }).data;
++}
++
++export function mapRowsToPigeons(rows: Record<string, string>[]) {
++  return rows.map((row, index) => {
++    const numero = row[SHEET_HEADERS.numero]?.trim();
++    const fotoValue = row[SHEET_HEADERS.foto]?.trim();
++
++    return {
++      nombre: row[SHEET_HEADERS.nombre]?.trim() ?? '',
++      numero: numero || createFallbackNumero(row[SHEET_HEADERS.nombre], index),
++      color: row[SHEET_HEADERS.color]?.trim() || undefined,
++      descripcion: row[SHEET_HEADERS.descripcion]?.trim() || undefined,
++      padre: row[SHEET_HEADERS.padre]?.trim() || undefined,
++      madre: row[SHEET_HEADERS.madre]?.trim() || undefined,
++      fechaNacimiento:
++        row[SHEET_HEADERS.fechaNacimiento]?.trim() || undefined,
++      fechaLlegada: row[SHEET_HEADERS.fechaLlegada]?.trim() || undefined,
++      tipo: row[SHEET_HEADERS.tipo]?.trim() || undefined,
++      estado: row[SHEET_HEADERS.estado]?.trim() || undefined,
++      foto: fotoValue && isValidUrl(fotoValue) ? fotoValue : undefined,
++    } satisfies Pigeon;
++  });
++}
++
++export async function fetchPigeons() {
++  const csv = await fetchCsv();
++  const rows = parseCsv(csv);
++  return mapRowsToPigeons(rows).filter((pigeon) => pigeon.nombre);
++}
+diff --git a/src/main.tsx b/src/main.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..5687caad0b16f15eb1b9e0c36dcd2fb9acbc5e94
+--- /dev/null
++++ b/src/main.tsx
+@@ -0,0 +1,12 @@
++import React from 'react';
++import ReactDOM from 'react-dom/client';
++import { AppProviders } from './app/providers';
++import { AppRouter } from './app/router';
++
++ReactDOM.createRoot(document.getElementById('root')!).render(
++  <React.StrictMode>
++    <AppProviders>
++      <AppRouter />
++    </AppProviders>
++  </React.StrictMode>,
++);
+diff --git a/src/pages/PigeonDetailPage.tsx b/src/pages/PigeonDetailPage.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..7f72a09b3f91970d565dc765482c4b4053916d8a
+--- /dev/null
++++ b/src/pages/PigeonDetailPage.tsx
+@@ -0,0 +1,177 @@
+[...]
+diff --git a/src/pages/PigeonsListPage.tsx b/src/pages/PigeonsListPage.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..5b0b7ee337a1d7147f142029fbcead4122bf6b3a
+--- /dev/null
++++ b/src/pages/PigeonsListPage.tsx
+@@ -0,0 +1,181 @@
+[...]
+diff --git a/src/types/pigeon.ts b/src/types/pigeon.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b74aaa2773e5459da8b8f27279fd232bba250e3
+--- /dev/null
++++ b/src/types/pigeon.ts
+@@ -0,0 +1,13 @@
++export type Pigeon = {
++  nombre: string;
++  numero: string;
++  color?: string;
++  descripcion?: string;
++  padre?: string;
++  madre?: string;
++  fechaNacimiento?: string;
++  fechaLlegada?: string;
++  tipo?: 'Local' | 'Rescatada' | string;
++  estado?: 'En Palomar' | 'Desaparecida' | 'Fallecida' | string;
++  foto?: string;
++};
+diff --git a/src/utils/constants.ts b/src/utils/constants.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..46399a551c098a0aa1cf1f4f41fa96299b121225
+--- /dev/null
++++ b/src/utils/constants.ts
+@@ -0,0 +1,16 @@
++export const PIGEON_ESTADOS = ['En Palomar', 'Desaparecida', 'Fallecida'];
++export const PIGEON_TIPOS = ['Local', 'Rescatada'];
++
++export const FIELD_LABELS = {
++  nombre: 'Nombre',
++  numero: 'Número',
++  color: 'Color',
++  descripcion: 'Descripción',
++  padre: 'Padre',
++  madre: 'Madre',
++  fechaNacimiento: 'Fecha de nacimiento',
++  fechaLlegada: 'Fecha de llegada',
++  tipo: 'Tipo',
++  estado: 'Estado',
++  foto: 'Foto',
++} as const;
+diff --git a/src/utils/pigeonSchema.ts b/src/utils/pigeonSchema.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..f840844a23727fd8642343bc7f8c00dbda6d7cf4
+--- /dev/null
++++ b/src/utils/pigeonSchema.ts
+@@ -0,0 +1,30 @@
++import { z } from 'zod';
++import { PIGEON_ESTADOS, PIGEON_TIPOS } from './constants';
++
++export const pigeonSchema = z.object({
++  nombre: z.string().min(1, 'El nombre es obligatorio'),
++  numero: z.string().min(1, 'El número es obligatorio'),
++  color: z.string().optional(),
++  descripcion: z.string().optional(),
++  padre: z.string().optional(),
++  madre: z.string().optional(),
++  fechaNacimiento: z.string().optional(),
++  fechaLlegada: z.string().optional(),
++  tipo: z
++    .string()
++    .optional()
++    .refine(
++      (value) => !value || PIGEON_TIPOS.includes(value),
++      'Selecciona un tipo válido',
++    ),
++  estado: z
++    .string()
++    .optional()
++    .refine(
++      (value) => !value || PIGEON_ESTADOS.includes(value),
++      'Selecciona un estado válido',
++    ),
++  foto: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
++});
++
++export type PigeonFormValues = z.infer<typeof pigeonSchema>;
+diff --git a/src/utils/resolvePigeonRef.ts b/src/utils/resolvePigeonRef.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..7f403fb54d1bd51ee338240a2556115bceb084df
+--- /dev/null
++++ b/src/utils/resolvePigeonRef.ts
+@@ -0,0 +1,14 @@
++import { Pigeon } from '../types/pigeon';
++
++export function resolvePigeonRef(value: string | undefined, pigeons: Pigeon[]) {
++  if (!value) return undefined;
++  const exactNumero = pigeons.find(
++    (pigeon) => pigeon.numero.toLowerCase() === value.toLowerCase(),
++  );
++  if (exactNumero) return exactNumero;
++
++  const byNombre = pigeons.find(
++    (pigeon) => pigeon.nombre.toLowerCase() === value.toLowerCase(),
++  );
++  return byNombre;
++}
+diff --git a/src/utils/validators.ts b/src/utils/validators.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..171583dc112c82292c4742e75944770c6868191d
+--- /dev/null
++++ b/src/utils/validators.ts
+@@ -0,0 +1,14 @@
++export function isValidUrl(value: string) {
++  try {
++    // eslint-disable-next-line no-new
++    new URL(value);
++    return true;
++  } catch {
++    return false;
++  }
++}
++
++export function createFallbackNumero(nombre?: string, index?: number) {
++  const safeName = nombre?.toLowerCase().replace(/\s+/g, '-') || 'paloma';
++  return `${safeName}-${(index ?? 0) + 1}`;
++}
+diff --git a/src/vite-env.d.ts b/src/vite-env.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..11f02fe2a0061d6e6e1f271b21da95423b448b32
+--- /dev/null
++++ b/src/vite-env.d.ts
+@@ -0,0 +1 @@
++/// <reference types="vite/client" />
+diff --git a/tsconfig.json b/tsconfig.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..e84f2af3e7884f63ed5ffb0d052194ebe00adf9f
+--- /dev/null
++++ b/tsconfig.json
+@@ -0,0 +1,17 @@
++{
++  "compilerOptions": {
++    "target": "ES2020",
++    "useDefineForClassFields": true,
++    "lib": ["ES2020", "DOM", "DOM.Iterable"],
++    "module": "ESNext",
++    "skipLibCheck": true,
++    "moduleResolution": "Bundler",
++    "allowImportingTsExtensions": true,
++    "resolveJsonModule": true,
++    "isolatedModules": true,
++    "noEmit": true,
++    "jsx": "react-jsx",
++    "strict": true
++  },
++  "include": ["src"]
++}
+diff --git a/tsconfig.node.json b/tsconfig.node.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..3adda81a1ce0bda41fc82b9e6d70aa2f68069060
+--- /dev/null
++++ b/tsconfig.node.json
+@@ -0,0 +1,10 @@
++{
++  "compilerOptions": {
++    "composite": true,
++    "skipLibCheck": true,
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
++    "allowSyntheticDefaultImports": true
++  },
++  "include": ["vite.config.ts"]
++}
+diff --git a/vite.config.ts b/vite.config.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c594471f82f69c11087fd9938dd5e7a22f6d368
+--- /dev/null
++++ b/vite.config.ts
+@@ -0,0 +1,9 @@
++import { defineConfig } from 'vite';
++import react from '@vitejs/plugin-react';
++
++export default defineConfig({
++  plugins: [react()],
++  server: {
++    port: 5173,
++  },
++});
