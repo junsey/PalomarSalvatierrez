@@ -62,7 +62,7 @@ export const mapRowsToPigeons = (rows: Record<string, string>[]): Pigeon[] => {
       nombre,
       numero,
       color: row["Color"]?.trim() || undefined,
-      fenotipo: row["Fenotipo"]?.trim() || undefined,
+      fenotipo: row["fenotipo"]?.trim() || row["Fenotipo"]?.trim() || undefined,
       sexo: row["Sexo"]?.trim() || undefined,
       descripcion: row["Descripcion"]?.trim() || undefined,
       padre: row["Padre"]?.trim() || undefined,
