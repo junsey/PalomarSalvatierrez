@@ -40,9 +40,10 @@ export const PigeonsListPage = () => {
   const filtered = useMemo(() => {
     return mergedPigeons.filter((p) => {
       const matchesSearch = p.nombre.toLowerCase().includes(search.toLowerCase());
-      const matchesEstado = !estado || p.estado === estado;
-      const matchesTipo = !tipo || p.tipo === tipo;
-      const matchesSexo = !sexo || p.sexo === sexo;
+      const matchesEstado =
+        !estado || normalize(p.estado) === normalize(estado);
+      const matchesTipo = !tipo || normalize(p.tipo) === normalize(tipo);
+      const matchesSexo = !sexo || normalize(p.sexo) === normalize(sexo);
       const matchesColor =
         !color || normalize(p.color) === normalize(color);
       return (
