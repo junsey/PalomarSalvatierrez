@@ -2,6 +2,7 @@ export type Pigeon = {
   nombre: string;
   numero: string;
   color?: string;
+  fenotipo?: string;
   sexo?: string;
   descripcion?: string;
   padre?: string;

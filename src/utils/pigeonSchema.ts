@@ -5,6 +5,7 @@ export const pigeonSchema = z.object({
   nombre: z.string().min(1, "Nombre requerido"),
   numero: z.string().min(1, "Numero requerido"),
   color: z.string().optional(),
+  fenotipo: z.string().optional(),
   sexo: z.string().optional(),
   descripcion: z.string().optional(),
   padre: z.string().optional(),

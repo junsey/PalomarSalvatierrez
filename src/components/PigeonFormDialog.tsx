@@ -28,6 +28,7 @@ export const PigeonFormDialog = ({ open, onClose, onSave }: Props) => {
       nombre: "",
       numero: "",
       color: "",
+      fenotipo: "",
       sexo: "",
       descripcion: "",
       padre: "",
@@ -64,6 +65,7 @@ export const PigeonFormDialog = ({ open, onClose, onSave }: Props) => {
             helperText={errors.numero?.message}
           />
           <TextField label="Color" {...register("color")} />
+          <TextField label="Fenotipo" {...register("fenotipo")} />
           <TextField label="Sexo" {...register("sexo")} />
           <TextField label="Descripcion" {...register("descripcion")} />
           <TextField label="Padre" {...register("padre")} />

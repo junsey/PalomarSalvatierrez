@@ -6,6 +6,7 @@ export const FIELD_LABELS: Record<string, string> = {
   nombre: "Nombre",
   numero: "Numero",
   color: "Color",
+  fenotipo: "Fenotipo",
   sexo: "Sexo",
   descripcion: "Descripcion",
   padre: "Padre",

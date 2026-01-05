@@ -211,6 +211,7 @@ export const PigeonDetailPage = () => {
                 Ficha de datos
               </Typography>
               <FieldRow label={FIELD_LABELS.color} value={pigeon.color} />
+              <FieldRow label={FIELD_LABELS.fenotipo} value={pigeon.fenotipo} />
               <FieldRow label={FIELD_LABELS.sexo} value={pigeon.sexo} />
               {renderRelation(FIELD_LABELS.padre, padreRef, pigeon.padre)}
               {renderRelation(FIELD_LABELS.madre, madreRef, pigeon.madre)}

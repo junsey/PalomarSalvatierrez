@@ -19,6 +19,7 @@ export const PigeonCard = ({ pigeon }: { pigeon: Pigeon }) => {
   const initial = getInitial(pigeon.nombre);
   const infoItems = [
     { label: "Sexo", value: pigeon.sexo },
+    { label: "Fenotipo", value: pigeon.fenotipo },
     { label: "Pareja", value: pigeon.pareja }
   ].filter((item) => item.value);
   const colorClass = getColorClass(pigeon.color);
