@@ -14,15 +14,19 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState } from "react";
 import { ESTADOS, TIPOS } from "../utils/constants";
+import { getColorClass } from "../utils/colorClasses";
 
 type Props = {
   search: string;
   selectedEstado: string | null;
   selectedTipo: string | null;
   selectedSexo: string | null;
+  selectedColor: string | null;
+  colors: string[];
   onEstadoChange: (value: string | null) => void;
   onTipoChange: (value: string | null) => void;
   onSexoChange: (value: string | null) => void;
+  onColorChange: (value: string | null) => void;
   onSearchChange: (value: string) => void;
   onClearFilters: () => void;
   onRefresh: () => void;
@@ -35,9 +39,12 @@ export const FiltersPanel = ({
   selectedEstado,
   selectedTipo,
   selectedSexo,
+  selectedColor,
+  colors,
   onEstadoChange,
   onTipoChange,
   onSexoChange,
+  onColorChange,
   onSearchChange,
   onClearFilters,
   onRefresh,
@@ -157,6 +164,55 @@ export const FiltersPanel = ({
                   variant={selectedTipo === tipo ? "filled" : "outlined"}
                 />
               ))}
+            </Box>
+          </Box>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+              Color
+            </Typography>
+            <Box display="flex" gap={1} flexWrap="wrap">
+              {colors.length === 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Sin colores
+                </Typography>
+              )}
+              {colors.map((color) => {
+                const isSelected = selectedColor === color;
+                return (
+                  <Box
+                    key={color}
+                    component="button"
+                    type="button"
+                    title={color}
+                    aria-label={`Filtrar por color ${color}`}
+                    onClick={() =>
+                      onColorChange(isSelected ? null : color)
+                    }
+                    className={getColorClass(color)}
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      border: "2px solid",
+                      borderColor: isSelected ? "primary.main" : "transparent",
+                      cursor: "pointer",
+                      padding: 0,
+                      outline: "none",
+                      transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                      boxShadow: isSelected
+                        ? "0 0 0 2px rgba(25, 118, 210, 0.2)"
+                        : "none",
+                      "&:hover": {
+                        transform: "scale(1.05)"
+                      },
+                      "&:focus-visible": {
+                        borderColor: "primary.main",
+                        boxShadow: "0 0 0 3px rgba(25, 118, 210, 0.25)"
+                      }
+                    }}
+                  />
+                );
+              })}
             </Box>
           </Box>
           <Box>

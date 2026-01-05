@@ -20,6 +20,14 @@ export const PigeonsListPage = () => {
   const [estado, setEstado] = useState<string | null>(null);
   const [tipo, setTipo] = useState<string | null>(null);
   const [sexo, setSexo] = useState<string | null>(null);
+  const [color, setColor] = useState<string | null>(null);
+
+  const normalize = (value?: string) =>
+    (value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
 
   const mergedPigeons = useMemo(() => {
     const sheet = data || [];
@@ -35,9 +43,30 @@ export const PigeonsListPage = () => {
       const matchesEstado = !estado || p.estado === estado;
       const matchesTipo = !tipo || p.tipo === tipo;
       const matchesSexo = !sexo || p.sexo === sexo;
-      return matchesSearch && matchesEstado && matchesTipo && matchesSexo;
+      const matchesColor =
+        !color || normalize(p.color) === normalize(color);
+      return (
+        matchesSearch &&
+        matchesEstado &&
+        matchesTipo &&
+        matchesSexo &&
+        matchesColor
+      );
     });
-  }, [mergedPigeons, search, estado, tipo, sexo]);
+  }, [mergedPigeons, search, estado, tipo, sexo, color]);
+
+  const colors = useMemo(() => {
+    const map = new Map<string, string>();
+    mergedPigeons.forEach((p) => {
+      const value = p.color?.trim();
+      if (!value) return;
+      const key = normalize(value);
+      if (!map.has(key)) map.set(key, value);
+    });
+    return Array.from(map.values()).sort((a, b) =>
+      a.localeCompare(b, "es", { sensitivity: "base" })
+    );
+  }, [mergedPigeons]);
 
   const totals = useMemo(() => {
     const counts = {
@@ -80,15 +109,19 @@ export const PigeonsListPage = () => {
             selectedEstado={estado}
             selectedTipo={tipo}
             selectedSexo={sexo}
+            selectedColor={color}
+            colors={colors}
             onEstadoChange={setEstado}
             onTipoChange={setTipo}
             onSexoChange={setSexo}
+            onColorChange={setColor}
             onSearchChange={setSearch}
             onClearFilters={() => {
               setSearch("");
               setEstado(null);
               setTipo(null);
               setSexo(null);
+              setColor(null);
             }}
             onRefresh={() => refetch()}
             isRefreshing={isFetching}
