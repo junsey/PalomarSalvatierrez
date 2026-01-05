@@ -17,9 +17,9 @@ export const PigeonCard = ({ pigeon }: { pigeon: Pigeon }) => {
   const localFotos = getLocalFotos(pigeon.nombre);
   const fotoSrc = pigeon.foto || localFotos[0];
   const initial = getInitial(pigeon.nombre);
+  const fenotipo = pigeon.fenotipo;
   const infoItems = [
     { label: "Sexo", value: pigeon.sexo },
-    { label: "Fenotipo", value: pigeon.fenotipo },
     { label: "Pareja", value: pigeon.pareja }
   ].filter((item) => item.value);
   const colorClass = getColorClass(pigeon.color);
@@ -86,12 +86,22 @@ export const PigeonCard = ({ pigeon }: { pigeon: Pigeon }) => {
                 {pigeon.estado && <Chip label={pigeon.estado} size="small" />}
                 {pigeon.tipo && <Chip label={pigeon.tipo} size="small" />}
               </Box>
-              {infoItems.length > 0 && (
+              {(fenotipo || infoItems.length > 0) && (
                 <Box
                   display="grid"
                   gridTemplateColumns="repeat(2, minmax(0, 1fr))"
                   gap={1}
                 >
+                  {fenotipo && (
+                    <Box gridColumn="1 / -1">
+                      <Typography variant="caption" color="text.secondary">
+                        Fenotipo
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {fenotipo}
+                      </Typography>
+                    </Box>
+                  )}
                   {infoItems.map((item) => (
                     <Box key={item.label}>
                       <Typography variant="caption" color="text.secondary">
