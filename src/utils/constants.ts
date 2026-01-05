@@ -1,6 +1,6 @@
 export const ESTADOS = ["en palomar", "desaparecida", "fallecida"] as const;
 
-export const TIPOS = ["Local", "rescatada", "Comprada"] as const;
+export const TIPOS = ["Local", "Rescatada", "Comprada"] as const;
 
 export const FIELD_LABELS: Record<string, string> = {
   nombre: "Nombre",
