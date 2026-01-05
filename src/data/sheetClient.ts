@@ -55,6 +55,7 @@ export const mapRowsToPigeons = (rows: Record<string, string>[]): Pigeon[] => {
     const fotoRaw = row["Foto"]?.trim() || undefined;
     const foto = extractImageUrl(fotoRaw);
     const tipoRaw =
+      row["Tipo(Local o Rescatada o Comprada)"]?.trim() ||
       row["Tipo(Local o rescatada o Comprada)"]?.trim() ||
       row["Tipo(Local o rescatada)"]?.trim();
 
